@@ -1,0 +1,19 @@
+site_name: redu
+site_description: Usability of Research Data
+site_author: TUB-NLP-OpenData
+
+repo_url: https://github.com/TUB-NLP-OpenData/usability_research_data
+edit_uri: https://github.com/TUB-NLP-OpenData/usability_research_data/edit/master/docs
+
+theme: readthedocs
+
+markdown_extensions:
+  - codehilite
+
+nav:
+  - Home: index.md
+  - Advanced: advanced.md
+  - About:
+    - Release Notes: about/changelog.md
+    - Contributing: about/contributing.md
+    - License: about/license.md
