@@ -42,6 +42,13 @@ or add it to your [Poetry](https://poetry.eustace.io/) project:
 $ poetry add redu
 ```
 
+
+# Test
+```text
+python -m unittest discover
+```
+
+
 # Usage
 
 After installation, the package can imported:
