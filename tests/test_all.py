@@ -16,5 +16,5 @@ class Test(unittest.TestCase):
 
     def test_dataset(self):
         df=redu.get_dataset("11303/8738/6/OABerlin2017_data_repositories.csv")
-        df.head()
+        print(df.head())
         return True

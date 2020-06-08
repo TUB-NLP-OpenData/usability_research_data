@@ -1,10 +1,14 @@
 """A sample module."""
+import csv
 
 from bs4 import BeautifulSoup
 import urllib
 import urllib.request
 import pandas as pd
 import io
+
+from soup import requests
+
 HOSTS=["https://depositonce.tu-berlin.de/"]
 
 
@@ -49,10 +53,19 @@ def search(keyword):
 
 
 def get_dataset(id_):
-    #url=urllib.urlopen(HOSTS[-1] +"bitstream/"+id_)
+    url = HOSTS[-1] +"bitstream/"+id_
+    r = requests.get(url)
+    r.encoding = 'utf-8'
+    csvio = io.StringIO(r.text, newline="")
+    data = []
+    for row in csv.DictReader(csvio):
+        data.append(row)
+    #url=urllib.request.urlopen(HOSTS[-1] +"bitstream/"+id_)
     #s=requests.get(url).content
     #pdf=pd.read_csv(io.StringIO(s.decode('utf-8')))
-    return pd.DataFrame()
+    pd.set_option('display.width', 400)
+    pd.set_option('display.max_columns', 20)
+    return pd.DataFrame(data)
 
 
 def get_preview(id_):
