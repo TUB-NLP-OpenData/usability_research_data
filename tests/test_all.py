@@ -5,7 +5,7 @@ import unittest
 
 class Test(unittest.TestCase):
     def test_search(self):
-        for e in redu.search("gps"):
+        for e in redu.search("raedt"):
             print (e)
         #self.assertEqual(0,1)
 

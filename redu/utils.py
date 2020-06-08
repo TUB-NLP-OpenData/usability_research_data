@@ -33,12 +33,18 @@ def get_element_from_handle(handle_id):
 
 def search(keyword):
     query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + keyword
-    soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
-    table = soup.find('table', attrs={"class":"table"}).find_all('tr')
-    elements=[]
-    for x in table:
-        if len(x.find_all('a',href=True))>0:
-            elements.append(get_element_from_handle(x.find_all('a', href=True)[0]["href"]))
+    elements = []
+    while query_string:
+        soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
+        table = soup.find('table', attrs={"class":"table"}).find_all('tr')
+
+        for x in table:
+            if len(x.find_all('a',href=True))>0:
+                elements.append(get_element_from_handle(x.find_all('a', href=True)[0]["href"]))
+        if soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a"):
+            query_string = HOSTS[-1] + soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a")["href"]
+        else:
+            query_string = ""
     return elements
 
 
