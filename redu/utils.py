@@ -7,8 +7,7 @@ import urllib
 import urllib.request
 import pandas as pd
 import io
-from os.path import basename
-
+from os.path import basename, join
 
 from soup import requests
 
@@ -58,7 +57,7 @@ def search(keyword):
 def get_dataset(id_):
     url = HOSTS[-1] + "bitstream/" + id_
     response = requests.get(url)
-    with open('/home/lord_tristan/Documents/Masterarbeit/usability_research_data/download/test.csv'.format(csv), 'wb') as f:
+    with open(join('/home/lord_tristan/Documents/Masterarbeit/usability_research_data/download/',  basename(url)), 'wb') as f:
         f.write(response.content)
 
 def get_preview(id_):
