@@ -1,11 +1,14 @@
 """A sample module."""
 import csv
+import os
 
 from bs4 import BeautifulSoup
 import urllib
 import urllib.request
 import pandas as pd
 import io
+from os.path import basename
+
 
 from soup import requests
 
@@ -53,21 +56,20 @@ def search(keyword):
 
 
 def get_dataset(id_):
-    url = HOSTS[-1] +"bitstream/"+id_
+    url = HOSTS[-1] + "bitstream/" + id_
+    response = requests.get(url)
+    with open('/home/lord_tristan/Documents/Masterarbeit/usability_research_data/download/test.csv'.format(csv), 'wb') as f:
+        f.write(response.content)
+
+def get_preview(id_):
+    ##implement here
+    url = HOSTS[-1] + "bitstream/" + id_
     r = requests.get(url)
     r.encoding = 'utf-8'
     csvio = io.StringIO(r.text, newline="")
     data = []
     for row in csv.DictReader(csvio):
         data.append(row)
-    #url=urllib.request.urlopen(HOSTS[-1] +"bitstream/"+id_)
-    #s=requests.get(url).content
-    #pdf=pd.read_csv(io.StringIO(s.decode('utf-8')))
     pd.set_option('display.width', 400)
     pd.set_option('display.max_columns', 20)
     return pd.DataFrame(data)
-
-
-def get_preview(id_):
-    ##implement here
-    return pd.DataFrame()
