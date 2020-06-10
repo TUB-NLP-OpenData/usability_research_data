@@ -5,7 +5,7 @@ import unittest
 
 class Test(unittest.TestCase):
     def test_search(self):
-        for e in redu.search("raedt"):
+        for e in redu.get_elements_by_keywork("raedt"):
             print (e)
         #self.assertEqual(0,1)
 

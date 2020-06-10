@@ -26,7 +26,7 @@ Create a connector that makes the bridge between data available on Research Data
 
 ## Requirements
 
-* Python 1.8+
+* Python 3+
 
 ## Installation
 
@@ -36,16 +36,9 @@ Install it directly into an activated virtual environment:
 $ pip install redu
 ```
 
-or add it to your [Poetry](https://poetry.eustace.io/) project:
-
-```text
-$ poetry add redu
-```
-
-
 # Test
 ```text
-python -m unittest discover
+python3 -m unittest discover
 ```
 
 
@@ -54,7 +47,7 @@ python -m unittest discover
 After installation, the package can imported:
 
 ```text
-$ python
+$ python3
 >>> import redu
 >>> redu.__version__
 ```
