@@ -7,6 +7,9 @@ import pandas as pd
 import io
 import requests
 from tqdm import tqdm
+import urllib.request
+from itertools import islice
+
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
 
@@ -86,4 +89,26 @@ def get_datasets(id_,ind_=[-1]):
 
 def get_preview(id_):
     ##implement here
+    ## first 5 lines of each file
+    #1 read first 5 lines of the file.
+    #2 read as pandas element 
+    #3 display the head of the file. return df.head()
+    #get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/11303/10989.2/2/Xb.csv')
+    #def get_nth_line(resp, n):
+    #    out=""
+    #    for i in range(n):
+    #        out+=str(resp.readline())
+    #    return out
+    #print(get_nth_line(get_page, 5))
+    #read_csv(..., nrows=999999)
+
     return pd.DataFrame()
+
+
+
+
+def describe(df):
+    ## include a code for run pandas profiler
+    #https://github.com/pandas-profiling/pandas-profiling
+    #profile = ProfileReport(df, title="Pandas Profiling Report")
+    return None
