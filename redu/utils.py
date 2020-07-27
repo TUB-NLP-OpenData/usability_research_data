@@ -9,6 +9,8 @@ import requests
 from tqdm import tqdm
 import urllib.request
 from itertools import islice
+from pandas_profiling import ProfileReport
+
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
@@ -49,6 +51,7 @@ def get_element_from_handle(handle_id):
 
 
 def get_elements_by_keywork(keyword, max_e=10):
+
     query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + keyword
     elements = []
     while query_string:
@@ -88,27 +91,15 @@ def get_datasets(id_,ind_=[-1]):
 
 
 def get_preview(id_):
-    ##implement here
-    ## first 5 lines of each file
-    #1 read first 5 lines of the file.
-    #2 read as pandas element 
-    #3 display the head of the file. return df.head()
-    #get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/11303/10989.2/2/Xb.csv')
-    #def get_nth_line(resp, n):
-    #    out=""
-    #    for i in range(n):
-    #        out+=str(resp.readline())
-    #    return out
-    #print(get_nth_line(get_page, 5))
-    #read_csv(..., nrows=999999)
-
-    return pd.DataFrame()
+    get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
+    return pd.read_csv(get_page, nrows=5)
 
 
 
 
-def describe(df):
-    ## include a code for run pandas profiler
-    #https://github.com/pandas-profiling/pandas-profiling
-    #profile = ProfileReport(df, title="Pandas Profiling Report")
-    return None
+
+def describe(id_):
+    get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
+    df = pd.read_csv(get_page)
+    profile = ProfileReport(df, title='Pandas Profiling Report', explorative=True)
+    return profile
