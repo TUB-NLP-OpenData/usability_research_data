@@ -43,9 +43,12 @@ def get_element_from_handle(handle_id):
     e.title= soup.find('meta', attrs={"name":"DC.title"})["content"] if soup.find('meta', attrs={"name":"DC.title"}) else None
     e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
     if (soup.find('div', attrs={"class":"file-row"})):
-        for div in soup.find_all('div', attrs={"class":"file-row"}):
+        for div in soup.find_all('div', attrs={"class": "file-row"}):
             files= div.find_all('a', href=True)
             for f in files:
+                # print(f)
+                # print(HOSTS[-1])
+                # print(f["href"])
                 e.files.append(HOSTS[-1]+f["href"])
     return e
 
@@ -61,7 +64,7 @@ def get_elements_by_keywork(keyword, max_e=10):
         table = soup.find('table', attrs={"class":"table"}).find_all('tr')
 
         for x in table:
-            if len(x.find_all('a',href=True))>0:
+            if len(x.find_all('a',href=True)) > 0:
                 elements.append(get_element_from_handle(x.find_all('a', href=True)[0]["href"]))
         if soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a"):
             query_string = HOSTS[-1] + soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a")["href"]
@@ -78,6 +81,7 @@ def search(keyword, max_e=10):
 def get_datasets(id_,ind_=[-1]):
     out=[]
     files=[f for f in get_element_from_handle(id_).files]
+
     for f in tqdm(files):
         #print (f)
         try:
@@ -85,15 +89,24 @@ def get_datasets(id_,ind_=[-1]):
             pdf=pd.read_csv(io.StringIO(s.decode('utf-8')))
             out.append(pdf)
         except:
-            #print ("error")
             pass
     return out
 
 
 def get_preview(id_):
-    get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
-    return pd.read_csv(get_page, nrows=5)
+    #get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
+    #return pd.read_csv(get_page, nrows=5)
+    out = []
+    files = [f for f in get_element_from_handle(id_).files]
+    for f in tqdm(files):
+        try:
+            get_page = urllib.request.urlopen(f)
+            var = pd.read_csv(get_page, nrows=5)
+            out.append(var)
+        except:
+            pass
 
+    return out
 
 
 
