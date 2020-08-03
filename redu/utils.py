@@ -93,9 +93,11 @@ def repository(handle_id):
                 e.files.append(dataset)
     return e
 
-def get_elements_by_keywork(keyword, max_e=10):
-
-    query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + keyword
+def get_elements_by_keywork(keyword, max_e=10, fo=None):
+    if fo == ".csv":
+        query_string= HOSTS[-1] + "simple-search?location=&query="+keyword+"&etal=5&filtername=original_bundle_filenames&filtertype=contains&rpp=10&sort_by=score&order=desc&filterquery=" + fo
+    else:
+        query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + keyword
     elements = []
     while query_string:
         if len(elements)> max_e-1:
@@ -113,8 +115,8 @@ def get_elements_by_keywork(keyword, max_e=10):
     return elements
 
 
-def search(keyword, format):
-    results=[x.to_dict() for x in get_elements_by_keywork(keyword)]
+def search(keyword, format=None):
+    results = [x.to_dict() for x in get_elements_by_keywork(keyword,max_e=10, fo=format)]
     return pd.DataFrame(results)
 
 
