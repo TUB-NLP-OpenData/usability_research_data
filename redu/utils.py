@@ -43,11 +43,11 @@ class Dataset():
             elif extension==".json":
                 return pd.read_json(get_page, nrows=5).head()
             else:
-                raise Exception("Sorry, filetype not suported") 
+                raise Exception("Sorry, filetype not suported")
 
     def df(self):
         return self.content
-    
+
     def describe(self):
         get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
         df = pd.read_csv(get_page)
@@ -65,7 +65,7 @@ class Element():
         self.files=[]
 
     def to_dict(self):
-        return {"id":self.id,"title":self.title,"authors":self.title,"files":[f.url.split("/")[-1] for f in self.files],"url":self.url}
+        return {"id":self.id,"title":self.title,"authors":self.author,"files":[f.url.split("/")[-1] for f in self.files],"url":self.url}
 
     def datasets(self):
         return self.files
@@ -77,13 +77,13 @@ class Element():
 def repository(handle_id):
     handle_id="/handle/"+handle_id.replace("/handle/","")
     url=HOSTS[-1] + handle_id
-    #print (url)
     e=Element()
     soup = BeautifulSoup(urllib.request.urlopen(url).read(), 'lxml')
     e.id= handle_id.replace("/handle/","")
     e.url = url
     e.title= soup.find('meta', attrs={"name":"DC.title"})["content"] if soup.find('meta', attrs={"name":"DC.title"}) else None
     e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
+    e.author = soup.find('meta', attrs={"name": "citation_author"})["content"] if soup.find('meta', attrs={"name": "citation_author"}) else None
     if (soup.find('div', attrs={"class":"file-row"})):
         for div in soup.find_all('div', attrs={"class": "file-row"}):
             files= div.find_all('a', href=True)
@@ -113,8 +113,8 @@ def get_elements_by_keywork(keyword, max_e=10):
     return elements
 
 
-def search(keyword, max_e=10):
-    results=[x.to_dict() for x in get_elements_by_keywork(keyword, max_e=10)]
+def search(keyword, format):
+    results=[x.to_dict() for x in get_elements_by_keywork(keyword)]
     return pd.DataFrame(results)
 
 
