@@ -31,28 +31,28 @@ class Dataset():
         self.abstract = None
         self.content=None
 
-    def download(self):
+    def download(self,path):
         s=requests.get(self.url).content
         self.content=pd.read_csv(io.StringIO(s.decode('utf-8')))
+        print ("Datas    Successfully Saved!")
 
     def preview(self):
-            extension=get_ext(self.url)
-            get_page = urllib.request.urlopen(self.url)
-            if extension==".csv":
-                return pd.read_csv(get_page, nrows=5).head()
-            elif extension==".json":
-                return pd.read_json(get_page, nrows=5).head()
-            else:
-                raise Exception("Sorry, filetype not suported")
+        extension=get_ext(self.url)
+        get_page = urllib.request.urlopen(self.url)
+        if extension==".csv":
+            return pd.read_csv(get_page, nrows=5).head()
+        elif extension==".json":
+            return pd.read_json(get_page, nrows=5).head()
+        else:
+            raise Exception("Sorry, filetype not suported") 
 
     def df(self):
         return self.content
-
+    
     def describe(self):
-        get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
-        df = pd.read_csv(get_page)
-        profile = ProfileReport(df, title='Pandas Profiling Report', explorative=True)
-        return profile
+        if not self.content:
+            self.download()
+        return ProfileReport(self.content, title='Pandas Profiling Report', explorative=True)
 
 
 class Element():
@@ -61,15 +61,32 @@ class Element():
         self.author = None
         self.id = None
         self.url = None
+        self.year = None
+        self.language = None
         self.abstract = None
+        self.server = "depositonce.tu-berlin.de"
         self.files=[]
 
     def to_dict(self):
-        return {"id":self.id,"title":self.title,"authors":self.author,"files":[f.url.split("/")[-1] for f in self.files],"url":self.url}
+        return {"id":self.id,"title":self.title,"author":self.author,"year":self.year,"language":self.language,"files":self.summ_datasets(),"url":self.url,"server":self.server}
 
     def datasets(self):
         return self.files
 
+    def summ_datasets(self):
+        out=""
+        ext={}
+        for f in self.files:
+            fname=f.url.split("/")[-1]
+            extension=str(fname.split(".")[-1]).upper()
+            if extension not in ext.keys():
+                ext[extension]=0
+            ext[extension]+=1
+        
+        for k,v in ext.items():
+            out+= str(v)+ " " +str(k)+"s, "
+        return out
+            
     def __str__(self):
         return str(self.title) + " - "+ str(len(self.files)) + " files"
 
@@ -79,84 +96,48 @@ def repository(handle_id):
     url=HOSTS[-1] + handle_id
     e=Element()
     soup = BeautifulSoup(urllib.request.urlopen(url).read(), 'lxml')
+    
+    #atributes
     e.id= handle_id.replace("/handle/","")
     e.url = url
-    e.title= soup.find('meta', attrs={"name":"DC.title"})["content"] if soup.find('meta', attrs={"name":"DC.title"}) else None
+    e.author = soup.find("meta", {"name":"citation_author"})["content"] if soup.find("meta",  {"name":"citation_author"}) else None 
+    e.year = soup.find("meta", {"name":"citation_date"})["content"] if soup.find("meta",  {"name":"citation_date"}) else None 
+    e.title= soup.find('meta', attrs={"name":"citation_title"})["content"] if soup.find('meta', attrs={"name":"citation_title"}) else None
+    e.language= soup.find('meta', attrs={"name":"citation_language"})["content"] if soup.find('meta', attrs={"name":"citation_language"}) else None
     e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
-    e.author = soup.find('meta', attrs={"name": "citation_author"})["content"] if soup.find('meta', attrs={"name": "citation_author"}) else None
-    if (soup.find('div', attrs={"class":"file-row"})):
-        for div in soup.find_all('div', attrs={"class": "file-row"}):
-            files= div.find_all('a', href=True)
-            for f in files:
-                dataset= Dataset()
-                dataset.url=HOSTS[-1]+f["href"]
+    
+    #files
+    for div in soup.find_all('span', attrs={"class": "file-title"}):
+        files= div.find_all('a', href=True)
+        for f in files:
+            dataset= Dataset()
+            dataset.url=HOSTS[-1]+f["href"]
+            if dataset.url not in [d.url for d in e.files]:
                 e.files.append(dataset)
     return e
 
-def get_elements_by_keywork(keyword, max_e=10, fo=None):
-    if fo == ".csv":
-        query_string= HOSTS[-1] + "simple-search?location=&query="+keyword+"&etal=5&filtername=original_bundle_filenames&filtertype=contains&rpp=10&sort_by=score&order=desc&filterquery=" + fo
-    else:
-        query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + keyword
+def search(keyword, format=None, translate_to=None, max_e=10):
     elements = []
-    while query_string:
-        if len(elements)> max_e-1:
-            break
+    query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
+    if format:
+        query_string+="&filtername=original_bundle_filenames&filtertype=contains&filterquery="+urllib.parse.quote(format)
+    
+    while query_string and len(elements)< max_e-1:
         soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
-        table = soup.find('table', attrs={"class":"table"}).find_all('tr')
-
-        for x in table:
-            if len(x.find_all('a',href=True)) > 0:
-                elements.append(repository(x.find_all('a', href=True)[0]["href"]))
+       
+       # visiting elements 
+        for x in soup.find('table', attrs={"class":"table"}).find_all('tr'):
+            e_url=x.find('a',href=True)
+            if e_url:
+                elements.append(repository(e_url["href"]))
+        
+        ##pagination
         if soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a"):
             query_string = HOSTS[-1] + soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a")["href"]
         else:
             query_string = ""
-    return elements
-
-
-def search(keyword, format=None):
-    results = [x.to_dict() for x in get_elements_by_keywork(keyword,max_e=10, fo=format)]
-    return pd.DataFrame(results)
-
-
-#def get_repo(id_,ind_=[-1]):
-#    out=[]
-#    files=[f for f in get_element_from_handle_id(id_).datasets]
-#
-#    for f in tqdm(files):
-#        #print (f)
-#        try:
-#            s=requests.get(f).content
-#            pdf=pd.read_csv(io.StringIO(s.decode('utf-8')))
-#            out.append(pdf)
-#        except:
-#            pass
-#    return out
-
-
-def get_preview(id_):
-    #get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
-    #return pd.read_csv(get_page, nrows=5)
-    out = []
-    files = [f for f in get_element_from_handle_id(id_).datasets]
-    for f in tqdm(files):
-        try:
-            get_page = urllib.request.urlopen(f)
-            var = pd.read_csv(get_page, nrows=5)
-            out.append(var)
-        except:
-            pass
-    return out
-
-
-
-
-def describe(id_):
-    get_page = urllib.request.urlopen('https://depositonce.tu-berlin.de/bitstream/' + id_ + '/2/Xb.csv')
-    df = pd.read_csv(get_page)
-    profile = ProfileReport(df, title='Pandas Profiling Report', explorative=True)
-    return profile
-
+    
+    results=[x.to_dict() for x in elements]
+    return pd.DataFrame(results)[["id","server","language","title","author","year","files"]]
 
 
