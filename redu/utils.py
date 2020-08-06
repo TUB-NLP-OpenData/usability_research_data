@@ -71,16 +71,22 @@ class Element():
 
     def to_dict(self,language=None):
         title=self.title
+        year=self.year
         if language:
             try:
                 title=translator.translate(self.title, dest=str(language).lower()).text
             except:
                 pass
 
+        ##parsing the data
+        if "-" in self.year:
+            year = self.year.split("-")[0]
+
+        
         return {"id":self.id,
         "title":title,
         "author":self.author,
-        "year":self.year,
+        "year":year,
         "language":self.language,
         "files":self.summ_datasets(),
         "url":self.url,
@@ -140,20 +146,25 @@ def search(keyword, format=None, translate_to=None, max_e=10):
     
     while query_string and len(elements)< max_e-1:
         soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
-       
-       # visiting elements 
-        for x in soup.find('table', attrs={"class":"table"}).find_all('tr'):
-            e_url=x.find('a',href=True)
-            if e_url:
-                elements.append(repository(e_url["href"]))
+        #visiting elements
+        if soup.find('table', attrs={"class":"table"}):
+            for x in soup.find('table', attrs={"class":"table"}).find_all('tr'):
+                e_url=x.find('a',href=True)
+                if e_url:
+                    elements.append(repository(e_url["href"]))
         
-        ##pagination
-        if soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a"):
-            query_string = HOSTS[-1] + soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a")["href"]
+            ##pagination
+            if soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a"):
+                query_string = HOSTS[-1] + soup.find('ul', attrs={"class": "pagination"}).find_all('li')[-1].find("a")["href"]
+            else:
+                query_string = ""
         else:
-            query_string = ""
+                query_string = ""
     
     results=[x.to_dict(language=translate_to) for x in elements]
-    return pd.DataFrame(results)[["id","server","language","title","author","year","files"]]
+    if results:
+        return pd.DataFrame(results)[["id","server","language","title","author","year","files"]].sort_values(by='year',ascending=False,)
+    else:
+        return pd.DataFrame()
 
 
