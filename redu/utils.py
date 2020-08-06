@@ -12,9 +12,11 @@ from itertools import islice
 from pandas_profiling import ProfileReport
 from urllib.parse import urlparse
 from os.path import splitext
+from googletrans import Translator
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
+translator = Translator()
 
 def get_ext(url):
     """Return the filename extension from url, or ''."""
@@ -67,8 +69,22 @@ class Element():
         self.server = "depositonce.tu-berlin.de"
         self.files=[]
 
-    def to_dict(self):
-        return {"id":self.id,"title":self.title,"author":self.author,"year":self.year,"language":self.language,"files":self.summ_datasets(),"url":self.url,"server":self.server}
+    def to_dict(self,language=None):
+        title=self.title
+        if language:
+            try:
+                title=translator.translate(self.title, dest=str(language).lower()).text
+            except:
+                pass
+
+        return {"id":self.id,
+        "title":title,
+        "author":self.author,
+        "year":self.year,
+        "language":self.language,
+        "files":self.summ_datasets(),
+        "url":self.url,
+        "server":self.server}
 
     def datasets(self):
         return self.files
@@ -137,7 +153,7 @@ def search(keyword, format=None, translate_to=None, max_e=10):
         else:
             query_string = ""
     
-    results=[x.to_dict() for x in elements]
+    results=[x.to_dict(language=translate_to) for x in elements]
     return pd.DataFrame(results)[["id","server","language","title","author","year","files"]]
 
 
