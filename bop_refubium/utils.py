@@ -15,7 +15,7 @@ from os.path import splitext
 from googletrans import Translator
 
 
-HOSTS=["https://depositonce.tu-berlin.de/"]
+HOSTS=["https://refubium.fu-berlin.de/"]
 translator = Translator()
 
 def get_ext(url):
@@ -66,7 +66,7 @@ class Element():
         self.year = None
         self.language = None
         self.abstract = None
-        self.server = "depositonce.tu-berlin.de"
+        self.server = "refubium.fu-berlin.de"
         self.files=[]
 
     def to_dict(self,language=None):
@@ -100,10 +100,11 @@ class Element():
         ext={}
         for f in self.files:
             fname=f.url.split("/")[-1]
-            extension=str(fname.split(".")[-1]).upper()
-            if extension not in ext.keys():
-                ext[extension]=0
-            ext[extension]+=1
+            extension=str(fname.split("?")[-2])
+            extensionType = str(extension.split(".")[-1]).upper()
+            if extensionType not in ext.keys():
+                ext[extensionType]=0
+            ext[extensionType]+=1
         
         for k,v in ext.items():
             out+= str(v)+ " " +str(k)+"s, "
@@ -122,15 +123,15 @@ def repository(handle_id):
     #atributes
     e.id= handle_id.replace("/handle/","")
     e.url = url
-    e.author = soup.find("meta", {"name":"citation_author"})["content"] if soup.find("meta",  {"name":"citation_author"}) else None 
-    e.year = soup.find("meta", {"name":"citation_date"})["content"] if soup.find("meta",  {"name":"citation_date"}) else None 
-    e.title= soup.find('meta', attrs={"name":"citation_title"})["content"] if soup.find('meta', attrs={"name":"citation_title"}) else None
-    e.language= soup.find('meta', attrs={"name":"citation_language"})["content"] if soup.find('meta', attrs={"name":"citation_language"}) else None
+    e.author = soup.find("meta", {"name":"DC.creator"})["content"] if soup.find("meta",  {"name":"DC.creator"}) else None
+    e.year = soup.find("meta", {"name":"DCTERMS.issued"})["content"] if soup.find("meta",  {"name":"DCTERMS.issued"}) else None
+    e.title= soup.find('meta', attrs={"name":"DC.title"})["content"] if soup.find('meta', attrs={"name":"DC.title"}) else None
+    e.language= soup.find('meta', attrs={"name":"DC.language"})["content"] if soup.find('meta', attrs={"name":"DC.language"}) else None
     e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
     
     #files
-    for div in soup.find_all('span', attrs={"class": "file-title"}):
-        files= div.find_all('a', href=True)
+    for div in soup.find_all('div', attrs={"class": "btn-group"}):
+        files= div.find_all(class_="btn-default", href=True)
         for f in files:
             dataset= Dataset()
             dataset.url=HOSTS[-1]+f["href"]
@@ -138,19 +139,16 @@ def repository(handle_id):
                 e.files.append(dataset)
     return e
 
-def search(keyword, format=None, translate_to= None, max_e=5):
+def search(keyword, format=None, translate_to=None, max_e=5):
     elements = []
-    query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=5&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
+    query_string= HOSTS[-1] +"discover?scope=%2F&&rpp=5&sort_by=score&order=desc&query=" + urllib.parse.quote(keyword)
     if format:
-        query_string+="&filtername=original_bundle_filenames&filtertype=contains&filterquery="+urllib.parse.quote(format)
-
-
+        query_string+="&filtertype_1=original_bundle_descriptions&filter_relational_operator_1=contains&filter_1"+urllib.parse.quote(format)
     while query_string and len(elements) < max_e-1:
-
         soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
         #visiting elements
-        if soup.find('table', attrs={"class":"table"}):
-            for x in soup.find('table', attrs={"class":"table"}).find_all('tr'):
+        if soup.find('div', attrs={"class":"list-group"}):
+            for x in soup.find('div', attrs={"class":"list-group"}).find_all(class_="list-group-item"):
                 e_url=x.find('a',href=True)
                 if e_url:
                     elements.append(repository(e_url["href"]))
