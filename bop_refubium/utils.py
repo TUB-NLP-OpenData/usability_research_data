@@ -163,7 +163,7 @@ def search(keyword, format=None, translate_to=None, max_e=5):
     
     results=[x.to_dict(language=translate_to) for x in elements]
     if results:
-
+        pd.set_option('max_colwidth', 79)
         return pd.DataFrame(results)[["id","server","language","title","author","year","files"]].sort_values(by='year',ascending=False,)
     else:
         return pd.DataFrame()
