@@ -29,7 +29,7 @@ lxml==4.5.1
 Markdown==2.6.9
 MarkupSafe==1.0
 monotonic==1.0
-paramiko==2.0.0
+paramiko==2.0.9
 parsel==1.6.0
 pluggy==0.6.0
 Protego==0.1.16
