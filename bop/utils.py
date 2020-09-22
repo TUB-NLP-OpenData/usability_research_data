@@ -70,6 +70,10 @@ class Element():
         self.server = "depositonce.tu-berlin.de"
         self.files=[]
 
+    def download(self, path):
+        for dataset in self.files:
+            dataset.download(path)
+
     def to_dict(self,language=None):
         title=self.title
         year=self.year
