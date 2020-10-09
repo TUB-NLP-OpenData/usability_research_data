@@ -90,6 +90,7 @@ class Element():
         "language":self.language,
         "files":self.summ_datasets(),
         "url":self.url,
+        "abstract":self.abstract,
         "server":self.server}
 
     def datasets(self):
@@ -138,12 +139,16 @@ def repository(handle_id):
                 e.files.append(dataset)
     return e
 
-def search(keyword, format=None, translate_to=None, max_e=10):
+def search(keyword, format=None, tabular=False, translate_to=None, max_e=10):
     elements = []
-    query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
-    if format:
-        query_string+="&filtername=original_bundle_filenames&filtertype=contains&filterquery="+urllib.parse.quote(format)
     
+    query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
+
+    if format and not tabular:
+        query_string+="&filtername=original_bundle_filenames&filtertype=contains&filterquery="+urllib.parse.quote(format)
+    elif tabular:
+        query_string+="&filtername=original_bundle_filenames&filtertype=contains&filterquery=*.csv"
+
     while query_string and len(elements)< max_e-1:
         soup = BeautifulSoup(urllib.request.urlopen(query_string).read(), 'lxml')
         #visiting elements
@@ -163,7 +168,7 @@ def search(keyword, format=None, translate_to=None, max_e=10):
     
     results=[x.to_dict(language=translate_to) for x in elements]
     if results:
-        return pd.DataFrame(results)[["id","server","language","title","author","year","files"]].sort_values(by='year',ascending=False,)
+        return pd.DataFrame(results)[["id","server","language","title","abstract","author","year","files"]].sort_values(by='year',ascending=False,)
     else:
         return pd.DataFrame()
 
