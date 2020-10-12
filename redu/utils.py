@@ -13,6 +13,7 @@ from pandas_profiling import ProfileReport
 from urllib.parse import urlparse
 from os.path import splitext
 from googletrans import Translator
+import os
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
@@ -24,6 +25,12 @@ def get_ext(url):
     root, ext = splitext(parsed.path)
     return str(ext).lower()  # or ext[1:] if you don't want the leading '.'
 
+def get_file_ext(url):
+    """Return the filename extension from url, or ''."""
+    parsed = urlparse(url)
+    filename = os.path.basename(parsed.path)
+    return filename
+
 class Dataset():
     def __init__(self):
         self.title = None
@@ -34,9 +41,18 @@ class Dataset():
         self.content=None
 
     def download(self,path):
-        s=requests.get(self.url).content
-        self.content=pd.read_csv(io.StringIO(s.decode('utf-8')))
-        print ("Datas    Successfully Saved!")
+        b = requests.get(self.url).content
+        # self.content=pd.read_csv(io.StringIO(b.decode('utf-8')))
+        self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
+        s = requests.get(self.url)
+        with open(os.path.join(path, "copyright.txt"), 'w') as f:
+            f.write("More information: " + self.license)
+
+        with open(os.path.join(path, get_file_ext(self.url)), 'wb') as f:
+            # for i in tqdm(range(100)):
+            f.write(s.content)
+
+        print("Datas Successfully Saved!")
 
     def preview(self):
         extension=get_ext(self.url)
@@ -53,7 +69,8 @@ class Dataset():
     
     def describe(self):
         if not self.content:
-            self.download()
+            b = requests.get(self.url).content
+            self.content = pd.read_csv(io.StringIO(b.decode('utf-8')))
         return ProfileReport(self.content, title='Pandas Profiling Report', explorative=True)
 
 
