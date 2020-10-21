@@ -31,6 +31,24 @@ def get_file_ext(url):
     filename = os.path.basename(parsed.path)
     return filename
 
+class Datasets():
+    def __init__(self):
+        self.datasets=[]
+
+    def __str__(self):
+        return str([str(d) for d in self.datasets ] )
+    
+    def __repr__(self):
+        return str([str(d) for d in self.datasets ])
+    
+    def get(self,filename):
+        for d in self.datasets:
+            if str(d).lower() == str(filename).lower():
+                d.download()
+                return d.content
+        raise Exception("Sorry, file not found") 
+
+
 class Dataset():
     def __init__(self):
         self.title = None
@@ -40,18 +58,24 @@ class Dataset():
         self.abstract = None
         self.content=None
 
-    def download(self,path):
+    def __str__(self):
+        return self.title
+    
+    def __repr__(self):
+        return self.title
+
+    def download(self,path=None):
         b = requests.get(self.url).content
         # self.content=pd.read_csv(io.StringIO(b.decode('utf-8')))
         self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
-        s = requests.get(self.url)
-        with open(os.path.join(path, "copyright.txt"), 'w') as f:
-            f.write("More information: " + self.license)
+        if path:
+            s = requests.get(self.url)
+            with open(os.path.join(path, "copyright.txt"), 'w') as f:
+                f.write("More information: " + self.license)
 
-        with open(os.path.join(path, get_file_ext(self.url)), 'wb') as f:
-            # for i in tqdm(range(100)):
-            f.write(s.content)
-
+            with open(os.path.join(path, get_file_ext(self.url)), 'wb') as f:
+                # for i in tqdm(range(100)):
+                f.write(s.content)
         print("Datas Successfully Saved!")
 
     def preview(self):
@@ -111,7 +135,11 @@ class Element():
         "server":self.server}
 
     def datasets(self):
-        return self.files
+        datasetss= Datasets()
+        #return self.files
+        for n in self.files:
+            datasetss.datasets.append(n)
+        return datasetss
 
     def summ_datasets(self):
         out=""
@@ -152,9 +180,14 @@ def repository(handle_id):
         for f in files:
             dataset= Dataset()
             dataset.url=HOSTS[-1]+f["href"]
+            dataset.title=str(f.text)
             if dataset.url not in [d.url for d in e.files]:
                 e.files.append(dataset)
     return e
+#def get(filename):
+#    for i in self.files:
+#        if str(i.title).lowe() == str(filename).lower():
+#            return i
 
 def search(keyword, format=None, tabular=False, translate_to=None, max_e=10):
     elements = []
