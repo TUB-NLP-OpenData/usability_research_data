@@ -29,7 +29,10 @@ def get_file_ext(url):
     """Return the filename extension from url, or ''."""
     parsed = urlparse(url)
     filename = os.path.basename(parsed.path)
-    return filename
+    return urllib.parse.unquote(filename)
+
+
+
 
 class Datasets():
     def __init__(self):
@@ -41,11 +44,12 @@ class Datasets():
     def __repr__(self):
         return str([str(d) for d in self.datasets ])
     
-    def get(self,filename):
+    def get(self, filename):
         for d in self.datasets:
             if str(d).lower() == str(filename).lower():
-                d.download()
-                return d.content
+                #d.download()
+                return d
+                #return d.content
         raise Exception("Sorry, file not found") 
 
 
@@ -57,6 +61,7 @@ class Dataset():
         self.url = None
         self.abstract = None
         self.content=None
+        self.license = None
 
     def __str__(self):
         return self.title
@@ -64,8 +69,9 @@ class Dataset():
     def __repr__(self):
         return self.title
 
-    def download(self,path=None):
+    def download(self, path=None):
         b = requests.get(self.url).content
+
         # self.content=pd.read_csv(io.StringIO(b.decode('utf-8')))
         self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
         if path:
@@ -78,23 +84,50 @@ class Dataset():
                 f.write(s.content)
         print("Datas Successfully Saved!")
 
-    def preview(self):
+    def preview(self, tail = False, random = False):
         extension=get_ext(self.url)
         get_page = urllib.request.urlopen(self.url)
-        if extension==".csv":
-            return pd.read_csv(get_page, nrows=5).head()
-        elif extension==".json":
-            return pd.read_json(get_page, nrows=5).head()
+        if(tail == True):
+            print("print the last 5 rows")
+            if extension == ".csv":
+                return pd.read_csv(get_page).tail(n=5)
+            elif extension == ".json":
+                return pd.read_json(get_page).tail(n=5)
+            else:
+                raise Exception("Sorry, filetype not suported")
+        elif(random == True):
+            if extension==".csv":
+                return pd.read_csv(get_page).sample(n=5)
+            elif extension==".json":
+                return pd.read_json(get_page).sample(n=5)
+            else:
+                raise Exception("Sorry, filetype not suported")
         else:
-            raise Exception("Sorry, filetype not suported") 
+            print("print the first 5 rows")
+            if extension==".csv":
+                return pd.read_csv(get_page, nrows=5).head()
+            elif extension==".json":
+                return pd.read_json(get_page, nrows=5).head()
+            else:
+                raise Exception("Sorry, filetype not suported")
 
     def df(self):
         return self.content
-    
+
+    def to_json(self):
+        b = requests.get(self.url).content
+        self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
+        return self.content.to_json()
+
+    def to_csv(self):
+        b = requests.get(self.url).content
+        self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
+        return self.content.to_csv()
+
     def describe(self):
-        if not self.content:
-            b = requests.get(self.url).content
-            self.content = pd.read_csv(io.StringIO(b.decode('utf-8')))
+        #if not self.content:
+        b = requests.get(self.url).content
+        self.content = pd.read_csv(io.StringIO(b.decode('utf-8')))
         return ProfileReport(self.content, title='Pandas Profiling Report', explorative=True)
 
 
@@ -107,6 +140,7 @@ class Element():
         self.year = None
         self.language = None
         self.abstract = None
+        self.license = None
         self.server = "depositonce.tu-berlin.de"
         self.files=[]
 
@@ -132,6 +166,7 @@ class Element():
         "files":self.summ_datasets(),
         "url":self.url,
         "abstract":self.abstract,
+        "license": self.license,
         "server":self.server}
 
     def datasets(self):
@@ -173,14 +208,17 @@ def repository(handle_id):
     e.title= soup.find('meta', attrs={"name":"citation_title"})["content"] if soup.find('meta', attrs={"name":"citation_title"}) else None
     e.language= soup.find('meta', attrs={"name":"citation_language"})["content"] if soup.find('meta', attrs={"name":"citation_language"}) else None
     e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
-    
+    e.license = soup.find('meta', {"name":"DC.rights"})["content"] if soup.find('meta', {"name":"DC.rights"}) else None
+
     #files
     for div in soup.find_all('span', attrs={"class": "file-title"}):
         files= div.find_all('a', href=True)
         for f in files:
             dataset= Dataset()
             dataset.url=HOSTS[-1]+f["href"]
+            dataset.license = e.license
             dataset.title=str(f.text)
+
             if dataset.url not in [d.url for d in e.files]:
                 e.files.append(dataset)
     return e
