@@ -159,10 +159,12 @@ class Element():
 
     def to_dict(self,language=None):
         title=self.title
+        abstract = self.abstract.decode("utf-8") if self.abstract else ""
         year=self.year
         if language:
             try:
                 title=translator.translate(self.title, dest=str(language).lower()).text
+                abstract=translator.translate(abstract, dest=str(language).lower()).text
             except:
                 pass
 
@@ -170,15 +172,17 @@ class Element():
         if "-" in self.year:
             year = self.year.split("-")[0]
 
-        
+        files_=""
+        for f in self.files:
+            files_+=f.title+" "
         return {"id":self.id,
         "title":title,
         "author":self.author,
         "year":year,
         "language":self.language,
-        "files":self.summ_datasets(),
+        "files":files_,
         "url":self.url,
-        "abstract":self.abstract,
+        "abstract":abstract,
         "license": self.license,
         "server":self.server}
 
@@ -245,7 +249,7 @@ def repository(handle_id):
 #        if str(i.title).lowe() == str(filename).lower():
 #            return i
 
-def search(keyword, format=None, tabular=False, translate_to=None, max_e=10):
+def search(keyword, format=None, tabular=False, translate_to=None, max_e=10, detailed=False):
     elements = []
     
     query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
@@ -272,10 +276,28 @@ def search(keyword, format=None, tabular=False, translate_to=None, max_e=10):
         else:
                 query_string = ""
     
-    results=[x.to_dict(language=translate_to) for x in elements]
-    if results:
-        return pd.DataFrame(results)[["id","server","language","title","abstract","author","year","files"]].sort_values(by='year',ascending=False,)
+    if detailed:
+        terminal(elements)
     else:
-        return pd.DataFrame()
+        pd.set_option('display.max_colwidth', 200)
+        pd.set_option('display.expand_frame_repr', True)
+
+        results=[x.to_dict(language=translate_to) for x in elements]
+        print ("Showing first " + str(len(elements))+" lines")
+        if results:
+            return pd.DataFrame(results)[["id","year","author","title","abstract","files"]].sort_values(by='year',ascending=False,)
+        else:
+            return pd.DataFrame()
+
+def terminal(elements):
+
+    for e in elements:
+        print ('{:10} \t {:20}'.format(str(e.id), str(e.title)))
+        print ('{:10} \t {:>.30}'.format("",str(e.abstract)))
+        print ('{:10} \t {:>.30}'.format("","Files:"))
+        for f in e.files: 
+            print ('{:10} \t \t {:>.30}'.format("",str(f.title)))
+
+        print ()
 
 
