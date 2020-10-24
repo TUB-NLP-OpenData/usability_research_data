@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 from os.path import splitext
 from googletrans import Translator
 import os
+from pathlib import Path
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
@@ -47,9 +48,8 @@ class Datasets():
     def get(self, filename):
         for d in self.datasets:
             if str(d).lower() == str(filename).lower():
-                #d.download()
-                return d
-                #return d.content
+                d.download()
+                return d.content
         raise Exception("Sorry, file not found") 
 
 
@@ -69,20 +69,33 @@ class Dataset():
     def __repr__(self):
         return self.title
 
-    def download(self, path=None):
-        b = requests.get(self.url).content
+    def download(self,path=None):
+        data = requests.get(self.url).content
+        extension=get_ext(self.title)
 
-        # self.content=pd.read_csv(io.StringIO(b.decode('utf-8')))
-        self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
-        if path:
-            s = requests.get(self.url)
-            with open(os.path.join(path, "copyright.txt"), 'w') as f:
-                f.write("More information: " + self.license)
+        try:
+            if extension==".csv":
+                self.content = pd.read_csv(io.StringIO(data.decode('ISO-8859-1')), error_bad_lines=False, warn_bad_lines=False)
+            elif extension==".json":
+                self.content = pd.read_json(io.StringIO(data.decode('ISO-8859-1')), error_bad_lines=False, warn_bad_lines=False)
+            else:
+                self.content = data.decode('ISO-8859-1')
+                #raise Exception("Sorry, filetype not detected") 
+        except:
+            print ("Error when interpreting the file...")
+            self.content = data.decode('ISO-8859-1')
+        
+        
+        if path==None:
+            path="./data"
+        Path(path).mkdir(parents=True, exist_ok=True)
 
-            with open(os.path.join(path, get_file_ext(self.url)), 'wb') as f:
-                # for i in tqdm(range(100)):
-                f.write(s.content)
-        print("Datas Successfully Saved!")
+        with open(os.path.join(path, "copyright.txt"), 'w') as f:
+            f.write("More information: " + str(self.license))
+        f.close()
+        with open(os.path.join(path, self.title), 'wb') as f:
+            f.write(data)
+        f.close()
 
     def preview(self, tail = False, random = False):
         extension=get_ext(self.url)
@@ -175,6 +188,11 @@ class Element():
         for n in self.files:
             datasetss.datasets.append(n)
         return datasetss
+    
+    def download(self, path=None):
+        for d in self.files:
+            d.download(path)
+        print("Datas Successfully Saved!")
 
     def summ_datasets(self):
         out=""
