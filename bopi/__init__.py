@@ -1,12 +1,11 @@
 from pkg_resources import get_distribution, DistributionNotFound
-from bopi.utils import *
-
+from redu.utils import *
 #from redu.search import *
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
 
 try:
-    __version__ = get_distribution('bopi').version
+    __version__ = get_distribution('redu').version
 except DistributionNotFound:
     __version__ = '(local)'
