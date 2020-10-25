@@ -3,7 +3,7 @@
 """Package entry point."""
 
 
-from redu.gui import main
+from bopi.gui import main
 
 
 if __name__ == '__main__':  # pragma: no cover

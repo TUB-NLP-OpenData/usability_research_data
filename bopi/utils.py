@@ -98,6 +98,7 @@ class Dataset():
         f.close()
 
     def preview(self, tail = False, random = False):
+
         extension=get_ext(self.url)
         get_page = urllib.request.urlopen(self.url)
         if(tail == True):
