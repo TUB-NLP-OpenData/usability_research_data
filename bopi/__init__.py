@@ -1,6 +1,5 @@
 from pkg_resources import get_distribution, DistributionNotFound
 from bopi.utils import *
-#from redu.search import *
 
 
 HOSTS=["https://depositonce.tu-berlin.de/"]

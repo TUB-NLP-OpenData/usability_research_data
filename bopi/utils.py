@@ -49,7 +49,7 @@ class Datasets():
         for d in self.datasets:
             if str(d).lower() == str(filename).lower():
                 d.download()
-                return d.content
+                return d
         raise Exception("Sorry, file not found") 
 
 
