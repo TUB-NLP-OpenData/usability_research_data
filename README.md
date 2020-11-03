@@ -17,13 +17,12 @@ Deducing from experience as well as observation we can state the hypothesis that
 # Usability
 The term usability refers to the extent to which a product can be used by specified users to achieve specific goals with effectiveness, efficiency, and satisfaction in a specified context of use. The term usability also refers to methods for improving ease-of-use during the design process. For instance, ISO 9241-151:2008 provides guidance on the human-centred design of software Web user interfaces with the aim of increasing its usability.
 
-<a href="https://drive.google.com/file/d/1oXpuGZnqO8WMAPuWMwL3BZPFkVE3S8EM/view?usp=sharing"> <img  src=https://raw.githubusercontent.com/TUB-NLP-OpenData/usability_research_data/master/extras/screen.png></a>
-
-
-
-
 # Goal
 Create a connector that makes the bridge between data available on Research Data Repositories inside of a Data Science Tool (to be defined). This would avoid manual download and open up a few possibilities, e.g. preview of data, metadata exploration, data curation, etc. Moreover, translation of metadata (e.g. German->English) would be also a plus for the internationalization.
+
+This documentation aims to help the user of our tool to get an understanding
+of using the syntax of BOPi by using a short explanation and example step by
+step.
 
 
 
