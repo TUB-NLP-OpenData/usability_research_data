@@ -26,24 +26,14 @@ step.
 
 
 
-# Setup
+# Getting Started
 
-## Requirements
+## 3.1 Prerequisites
 
-* Python 3+
-
-## Installation
-
-Install it directly into an activated virtual environment:
-
-```text
-$ pip install redu
-```
-
-# Test
-```text
-python3 -m unittest discover
-```
+  ### Python 3
+      Python 3 should be installed in your System.
+    
+  
 
 
 # Usage
