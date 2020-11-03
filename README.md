@@ -11,13 +11,13 @@ This project was generated with [cookiecutter](https://github.com/audreyr/cookie
 [![PyPI Version](https://img.shields.io/pypi/v/redu.svg)](https://pypi.org/project/redu)
 [![PyPI License](https://img.shields.io/pypi/l/redu.svg)](https://pypi.org/project/redu)
 
-# Problem
+# 1. Problem
 Deducing from experience as well as observation we can state the hypothesis that digital research in the scholarly field of the humanities appears to perform not as effective and in accordance to the possibility and potential of digital research. We identify usability as a key factor and shortcomings of usability as a major hindrance. 
 
-# Usability
+## Usability
 The term usability refers to the extent to which a product can be used by specified users to achieve specific goals with effectiveness, efficiency, and satisfaction in a specified context of use. The term usability also refers to methods for improving ease-of-use during the design process. For instance, ISO 9241-151:2008 provides guidance on the human-centred design of software Web user interfaces with the aim of increasing its usability.
 
-# Goal
+# 2. Goal
 Create a connector that makes the bridge between data available on Research Data Repositories inside of a Data Science Tool (to be defined). This would avoid manual download and open up a few possibilities, e.g. preview of data, metadata exploration, data curation, etc. Moreover, translation of metadata (e.g. German->English) would be also a plus for the internationalization.
 
 This documentation aims to help the user of our tool to get an understanding
@@ -26,23 +26,32 @@ step.
 
 
 
-# Getting Started
+# 3. Getting Started
 
 ## 3.1 Prerequisites
 
   ### Python 3
-      Python 3 should be installed in your System.
+  Python 3 should be installed in your System.
+
+## 3.2 clone package from Git
+    !git clone https://github.com/TUB-NLP-OpenData/usability_research_data
     
-  
+## 3.3 
+    !pip install git+https://github.com/TUB-NLP-OpenData/usability_research_data 
+**(restart the runtime after installation)*
+
+## 3.4 Referencing to the parent of the current working directory
+    import sys
+    sys.path.append('/content/usability_research_data')
+
+## Import-Package
+    from usability_research_data import bopi
 
 
-# Usage
 
-After installation, the package can imported:
 
-```text
-$ python3
->>> import redu
->>> redu.__version__
-```
+
+
+
+
 
