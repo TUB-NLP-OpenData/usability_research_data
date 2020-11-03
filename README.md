@@ -33,10 +33,10 @@ step.
   ### Python 3
   Python 3 should be installed in your System.
 
-## 3.2 clone package from Git
+## 3.2 Clone package from Git
     !git clone https://github.com/TUB-NLP-OpenData/usability_research_data
     
-## 3.3 
+## 3.3 Install dependencies
     !pip install git+https://github.com/TUB-NLP-OpenData/usability_research_data 
 **(restart the runtime after installation)*
 
@@ -44,14 +44,32 @@ step.
     import sys
     sys.path.append('/content/usability_research_data')
 
-## Import-Package
+## 3.5 Import-Package
     from usability_research_data import bopi
 
 
 
 
+# 4. Syntax Usage
 
-
+Below is the explanation to search the data in DSpace repository and features to help
+the researcher to read, preview, describe, and download the data that consists of 2
+parts 4.1. And 4.2.
+  
+ 
+  * ##  4.1 Searching the data in the repository
+    * ### 4.1.1 bopi.search(String | required, format = String | optional, tabular = Boolean | optional, translate_to = String | optional, max_e = Number |      optional,             detailed = Boolean | optional)
+    
+The search() method has 6 total parameters where the first parameter is required to find the data that the user is looking for and the other 5 parameters are optional such as format, tabular, translate_to, max_e,detailed. The table below will explain each parameter with its functionality:
+  
+Parameter | Functionality
+------------ | -------------
+"Required search string" | This first parameter must be filled with the String, e.g: “World”, “Food” or “Humidity”.
+format =  "csv" &#124; "json" &#124; ""  | This optional parameter can be filled with the required data type in String type, e.g: “csv” or “json”.
+tabular &#124; optional  | This optional parameter defines if the user is looking for tabular data or not by filling with boolean type True or False.
+translate_to &#124; optional | This optional parameter is using to translate the data. E.g: “en” for English and “de” for germans
+Max_e &#124; optional  | This optional parameter will give the number of the output.
+detailed &#124; optional  |This optional parameter can be filled with True or False to give the user another form of the output in text. _Note: the default output is table dataframe_.
 
 
 
