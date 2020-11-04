@@ -86,6 +86,7 @@ parts 4.1. And 4.2.
 
        ![image](https://drive.google.com/uc?export=view&id=1aIE2mwFE_wOxsEQNz9mnI-vPv_R1-zQS)   
        
+       ---
        
        ```
         from usability_research_data import bopi
@@ -97,6 +98,8 @@ parts 4.1. And 4.2.
 
        ![image](https://drive.google.com/uc?export=view&id=1w9d6VRX7m4OohHFetEyq_yFJOGgpK_kb)
        
+       ---
+       
        ```
         from usability_research_data import bopi
         bopi.search("Temperature",format = “csv”)   
@@ -106,6 +109,8 @@ parts 4.1. And 4.2.
        _The example by adding format ="csv". so that the user can get repositories that only have csv dataset.
 
        ![image](https://drive.google.com/uc?export=view&id=1804W8twZ03csW7qtsZryeqaUvIi4K3Fq)
+       
+       ---
    
        ```diff
        - IMPORTANT: As you can see in the result, the output holds an important keys, which are “ID” and “Files” to be used later to read the data, preview, describe, and download the data.
