@@ -80,6 +80,24 @@ parts 4.1. And 4.2.
         from usability_research_data import bopi
         bopi.search("Temperature")    
        ```
-       _**Output:**_
+       _**Output:**_ :
+        _The example of input search only_
        ![image](https://drive.google.com/uc?export=view&id=1aIE2mwFE_wOxsEQNz9mnI-vPv_R1-zQS)   
+       
+       
+       ```
+        from usability_research_data import bopi
+        bopi.search("Temperature",detailed = True)    
+       ```
+       _**Output:**_
+       _The example by adding detailed = True as parameterr, so that we get another form of result._
+       ![image](https://drive.google.com/uc?export=view&id=1w9d6VRX7m4OohHFetEyq_yFJOGgpK_kb)
+       
+       ```
+        from usability_research_data import bopi
+        bopi.search("Temperature",format = “csv”)   
+       ```
+       _**Output:**_
+       _The example by adding format ="csv". so that the user can get repositories that only have csv dataset.
+       ![image](https://drive.google.com/uc?export=view&id=1804W8twZ03csW7qtsZryeqaUvIi4K3Fq)
    
