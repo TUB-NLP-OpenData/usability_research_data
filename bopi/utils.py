@@ -14,8 +14,10 @@ from urllib.parse import urlparse
 from os.path import splitext
 from googletrans import Translator
 import os
-from pathlib import Path
+import logging
 
+from pathlib import Path
+from urllib.error import HTTPError
 
 HOSTS=["https://depositonce.tu-berlin.de/"]
 translator = Translator()
@@ -136,7 +138,8 @@ class Dataset():
     def to_csv(self):
         b = requests.get(self.url).content
         self.content = pd.read_csv(io.StringIO(b.decode('ISO-8859-1')), error_bad_lines=False)
-        return self.content.to_csv()
+        return self.content
+        #return self.content.to_csv()
 
     def describe(self):
         #if not self.content:
@@ -221,36 +224,43 @@ def repository(handle_id):
     handle_id="/handle/"+handle_id.replace("/handle/","")
     url=HOSTS[-1] + handle_id
     e=Element()
-    soup = BeautifulSoup(urllib.request.urlopen(url).read(), 'lxml')
+    #soup = BeautifulSoup(urllib.request.urlopen(url).read(), 'lxml')
+
+
+    try:
+        soup = BeautifulSoup(urllib.request.urlopen(url).read(), 'lxml')
+        #atributes
+        e.id= handle_id.replace("/handle/","")
+        e.url = url
+        e.author = soup.find("meta", {"name":"citation_author"})["content"] if soup.find("meta",  {"name":"citation_author"}) else None 
+        e.year = soup.find("meta", {"name":"citation_date"})["content"] if soup.find("meta",  {"name":"citation_date"}) else None 
+        e.title= soup.find('meta', attrs={"name":"citation_title"})["content"] if soup.find('meta', attrs={"name":"citation_title"}) else None
+        e.language= soup.find('meta', attrs={"name":"citation_language"})["content"] if soup.find('meta', attrs={"name":"citation_language"}) else None
+        e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
+        e.license = soup.find('meta', {"name":"DC.rights"})["content"] if soup.find('meta', {"name":"DC.rights"}) else None
+
+        #files
+        for div in soup.find_all('span', attrs={"class": "file-title"}):
+            files= div.find_all('a', href=True)
+            for f in files:
+                dataset= Dataset()
+                dataset.url=HOSTS[-1]+f["href"]
+                dataset.license = e.license
+                dataset.title=str(f.text)
+
+                if dataset.url not in [d.url for d in e.files]:
+                    e.files.append(dataset)
+        return e
+    except urllib.error.HTTPError as err:
+        print(repr("INPUT THE CORRECT ID !!!"))
     
-    #atributes
-    e.id= handle_id.replace("/handle/","")
-    e.url = url
-    e.author = soup.find("meta", {"name":"citation_author"})["content"] if soup.find("meta",  {"name":"citation_author"}) else None 
-    e.year = soup.find("meta", {"name":"citation_date"})["content"] if soup.find("meta",  {"name":"citation_date"}) else None 
-    e.title= soup.find('meta', attrs={"name":"citation_title"})["content"] if soup.find('meta', attrs={"name":"citation_title"}) else None
-    e.language= soup.find('meta', attrs={"name":"citation_language"})["content"] if soup.find('meta', attrs={"name":"citation_language"}) else None
-    e.abstract= soup.find('meta', attrs={"name":"DCTERMS.abstract"})["content"].encode('utf-8') if soup.find('meta', attrs={"name":"DCTERMS.abstract"}) else None
-    e.license = soup.find('meta', {"name":"DC.rights"})["content"] if soup.find('meta', {"name":"DC.rights"}) else None
-
-    #files
-    for div in soup.find_all('span', attrs={"class": "file-title"}):
-        files= div.find_all('a', href=True)
-        for f in files:
-            dataset= Dataset()
-            dataset.url=HOSTS[-1]+f["href"]
-            dataset.license = e.license
-            dataset.title=str(f.text)
-
-            if dataset.url not in [d.url for d in e.files]:
-                e.files.append(dataset)
-    return e
+    
 #def get(filename):
 #    for i in self.files:
 #        if str(i.title).lowe() == str(filename).lower():
 #            return i
 
-def search(keyword, format=None, tabular=False, translate_to=None, max_e=10, detailed=False):
+def search(keyword, format=None, tabular=False, translate_to=None, max_e=100, detailed=False):
     elements = []
     
     query_string= HOSTS[-1] +"simple-search?location=%2F&rpp=10&sort_by=score&order=desc&etal=5&query=" + urllib.parse.quote(keyword)
@@ -282,7 +292,7 @@ def search(keyword, format=None, tabular=False, translate_to=None, max_e=10, det
     else:
         pd.set_option('display.max_colwidth', 200)
         pd.set_option('display.expand_frame_repr', True)
-
+        pd.set_option("max_rows", None)
         results=[x.to_dict(language=translate_to) for x in elements]
         print ("Showing first " + str(len(elements))+" lines")
         if results:
