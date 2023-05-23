@@ -1,4 +1,4 @@
-requests==2.24.0
+requests==2.31.0
 tqdm==4.47.0
 googletrans==3.0.0
 pandas_profiling==2.8.0
